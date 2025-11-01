@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>CampusBus Tracker — Prototype</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+html,body,#map { height: 100%; margin: 0; padding: 0 }
+#info { position: absolute; top: 10px; left: 10px; z-index: 5; background: white; padding: 8px; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.3) }
+</style>
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY"></script>
+</head>
+<body>
+<div id="info">Connected buses: <span id="count">0</span></div>
+<div id="map"></div>
+<script>
+const socket = io();
+let map;
+const markers = {}; // busId -> marker
+
+
+function initMap() {
+map = new google.maps.Map(document.getElementById('map'), {
+center: { lat: 17.428, lng: 78.428 },
+zoom: 14
+});
+}
+
+
+function updateMarker(busId, lat, lon) {
+if (!markers[busId]) {
+markers[busId] = new google.maps.Marker({
+map,
+position: { lat, lng: lon },
+label: busId
+});
+} else {
+markers[busId].setPosition({ lat, lng: lon });
+}
+}
+
+
+// init map after script loads
+initMap();
+
+
+socket.on('initial_state', (buses) => {
+const keys = Object.keys(buses);
+document.getElementById('count').innerText = keys.length;
+keys.forEach(id => updateMarker(id, buses[id].lat, buses[id].lon));
+});
+
+
+socket.on('bus_location', (payload) => {
+const { busId, lat, lon } = payload;
+updateMarker(busId, lat, lon);
+document.getElementById('count').innerText = Object.keys(markers).length;
+});
+
+
+</script>
+</body>
+</html>

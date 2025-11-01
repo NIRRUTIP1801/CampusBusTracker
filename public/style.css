@@ -1,0 +1,67 @@
+
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: url("backgroundimg3.png") no-repeat center center/cover;
+    backdrop-filter: blur(1px);
+    font-family: "Poppins", sans-serif;
+}
+
+/* Semi-transparent box */
+.main {
+    background: rgba(255, 255, 255, 0.382);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 40px 60px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(26, 2, 47, 0.3);
+    color: #6430d4;
+    width: 350px;
+}
+ 
+/* Headings */
+.main h1 {
+    margin-bottom: 10px;
+    font-size: 28px;
+}
+
+.main h3 {
+    margin-bottom: 20px;
+}
+
+/* Form inputs */
+input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0 15px 0;
+    border: none;
+    border-radius: 8px;
+    outline: none;
+}
+
+/* Button */
+button {
+    background-color: #ef9fed;
+    color: white;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background-color: #7f1988;
+}
+
+/* Link */
+a {
+    color: #81ecec;
+}
+
+a:hover {
+    color: #00cec9;
+}
