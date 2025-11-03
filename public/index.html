@@ -1,3 +1,4 @@
+<!--
 <!doctype html>
 <html>
 <head>
@@ -61,4 +62,625 @@ document.getElementById('count').innerText = Object.keys(markers).length;
 
 </script>
 </body>
+</html> -->
+
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport content=" width="device-width," initial-scale="1.0&quot;">
+  <title>Campus Bus Tracker</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&amp;libraries=geometry"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100%;
+      height: 100%;
+    }
+    
+    html {
+      height: 100%;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .header {
+      background: white;
+      padding: 24px 32px;
+      border-radius: 16px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 24px;
+    }
+    
+    .header h1 {
+      margin: 0 0 8px 0;
+      font-size: 32px;
+      color: #1a202c;
+      font-weight: 700;
+    }
+    
+    .header p {
+      margin: 0;
+      font-size: 16px;
+      color: #718096;
+    }
+    
+    .main-content {
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: 24px;
+      flex: 1;
+      min-height: 0;
+    }
+    
+    .sidebar {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      overflow-y: auto;
+    }
+    
+    .sidebar h2 {
+      margin: 0 0 20px 0;
+      font-size: 20px;
+      color: #1a202c;
+      font-weight: 600;
+    }
+    
+    .route-card {
+      background: #f7fafc;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+    }
+    
+    .route-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .route-card.active {
+      border-color: #667eea;
+      background: #edf2f7;
+    }
+    
+    .route-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    
+    .route-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-right: 12px;
+    }
+    
+    .route-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #2d3748;
+      margin: 0;
+    }
+    
+    .route-status {
+      font-size: 12px;
+      color: #48bb78;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #48bb78;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .route-info {
+      font-size: 14px;
+      color: #4a5568;
+      margin: 8px 0 0 0;
+    }
+    
+    .timing-info {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #e2e8f0;
+    }
+    
+    .timing-item {
+      font-size: 12px;
+      color: #718096;
+    }
+    
+    .timing-value {
+      font-weight: 600;
+      color: #2d3748;
+    }
+    
+    .map-container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      position: relative;
+    }
+    
+    #map {
+      width: 100%;
+      height: 100%;
+      min-height: 500px;
+    }
+    
+    .legend {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: white;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+    }
+    
+    .legend h3 {
+      margin: 0 0 12px 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: #2d3748;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: #4a5568;
+    }
+    
+    .legend-color {
+      width: 20px;
+      height: 4px;
+      border-radius: 2px;
+      margin-right: 8px;
+    }
+    
+    @media (max-width: 1024px) {
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+      
+      .sidebar {
+        max-height: 300px;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="container">
+   <div class="header">
+    <h1 id="site-title">Campus Bus Tracker</h1>
+    <p id="tagline">Real-time bus tracking for your campus</p>
+   </div>
+   <div class="main-content">
+    <div class="sidebar">
+     <h2>Active Routes</h2>
+     <div class="route-card active" data-route="route1">
+      <div class="route-header">
+       <div class="route-icon" style="background: #fef3c7;">
+        🚌
+       </div>
+       <div>
+        <p class="route-name" id="route-1-name">RN</p>
+        <p class="route-status"><span class="status-dot"></span>Active</p>
+       </div>
+      </div>
+      <p class="route-info">Stops: clg gate → Ravi Nagar → Kardile hospital → kalamandir → Shivaji nagar → iti → workshop →  BSNL office → Chattrapati chowk → more chowk → iti → Shivaji nagar → kalamandir → Kardile hospital → Ravi Nagar → clg gate
+</p>
+      <div class="timing-info">
+       <div class="timing-item">
+        <div>
+         Frequency
+        </div>
+        <div class="timing-value">
+         15 min
+        </div>
+       </div>
+       <div class="timing-item">
+        <div>
+         Next Arrival
+        </div>
+        <div class="timing-value">
+         3 min
+        </div>
+       </div>
+      </div>
+     </div>
+     <div class="route-card" data-route="route2">
+      <div class="route-header">
+       <div class="route-icon" style="background: #dbeafe;">
+        🚐
+       </div>
+       <div>
+        <p class="route-name" id="route-2-name">AN</p>
+        <p class="route-status"><span class="status-dot"></span>Active</p>
+       </div>
+      </div>
+      <p class="route-info">Stops:clg gate → Akruti → mondha → abchalnagar → sathe chowk → Nagarjuna corner → Anand nagar → ashoknagar → ITI → sathe chowk → teshsil office → mondha → clg gate</p>
+      <div class="timing-info">
+       <div class="timing-item">
+        <div>
+         Frequency
+        </div>
+        <div class="timing-value">
+         20 min
+        </div>
+       </div>
+       <div class="timing-item">
+        <div>
+         Next Arrival
+        </div>
+        <div class="timing-value">
+         7 min
+        </div>
+       </div>
+      </div>
+     </div>
+     <div class="route-card" data-route="route3">
+      <div class="route-header">
+       <div class="route-icon" style="background: #d1fae5;">
+        🚍
+       </div>
+       <div>
+        <p class="route-name" id="route-3-name">ANRN</p>
+        <p class="route-status"><span class="status-dot"></span>Active</p>
+       </div>
+      </div>
+      <p class="route-info">Stops: clg gate → Akruti → mondha → abchalnagar → sathe chowk → Nagarjuna corner → Anand nagar → ashoknagar → workshop →  BSNL office → Chattrapati chowk → more chowk → iti → Shivaji nagar → kalamandir → Kardile hospital → Ravi Nagar → clg gate</p>
+      <div class="timing-info">
+       <div class="timing-item">
+        <div>
+         Frequency
+        </div>
+        <div class="timing-value">
+         30 min
+        </div>
+       </div>
+       <div class="timing-item">
+        <div>
+         Next Arrival
+        </div>
+        <div class="timing-value">
+         12 min
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+    <div class="map-container">
+     <div id="map"></div>
+     <div class="legend">
+      <h3>Route Legend</h3>
+      <div class="legend-item">
+       <div class="legend-color" style="background: #f59e0b;"></div><span>R</span>
+      </div>
+      <div class="legend-item">
+       <div class="legend-color" style="background: #3b82f6;"></div><span>AN</span>
+      </div>
+      <div class="legend-item">
+       <div class="legend-color" style="background: #10b981;"></div><span>Main Street Shuttle</span>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+    const defaultConfig = {
+      background_color: "#667eea",
+      surface_color: "#ffffff",
+      text_color: "#1a202c",
+      primary_action_color: "#667eea",
+      secondary_action_color: "#718096",
+      site_title: "Campus Bus Tracker",
+      tagline: "Real-time bus tracking for your campus",
+      route_1_name: "R",
+      route_2_name: "AN",
+      route_3_name: "Main Street Shuttle",
+      font_family: "Inter",
+      font_size: 16
+    };
+
+    let map;
+    let busMarkers = [];
+    let routePolylines = [];
+    
+    // Sample campus coordinates (you can adjust these)
+    const campusCenter = { lat: 40.7128, lng: -74.0060 };
+    
+    // Define routes with coordinates
+    const routes = {
+      route1: {
+        color: '#f59e0b',
+        path: [
+          { lat: 40.7128, lng: -74.0060 },
+          { lat: 40.7148, lng: -74.0080 },
+          { lat: 40.7168, lng: -74.0070 },
+          { lat: 40.7158, lng: -74.0040 },
+          { lat: 40.7128, lng: -74.0060 }
+        ],
+        buses: [{ lat: 40.7138, lng: -74.0070 }]
+      },
+      route2: {
+        color: '#3b82f6',
+        path: [
+          { lat: 40.7108, lng: -74.0060 },
+          { lat: 40.7098, lng: -74.0080 },
+          { lat: 40.7088, lng: -74.0070 },
+          { lat: 40.7098, lng: -74.0040 },
+          { lat: 40.7108, lng: -74.0060 }
+        ],
+        buses: [{ lat: 40.7103, lng: -74.0065 }]
+      },
+      route3: {
+        color: '#10b981',
+        path: [
+          { lat: 40.7128, lng: -74.0040 },
+          { lat: 40.7128, lng: -74.0020 },
+          { lat: 40.7148, lng: -74.0020 },
+          { lat: 40.7148, lng: -74.0040 },
+          { lat: 40.7128, lng: -74.0040 }
+        ],
+        buses: [{ lat: 40.7138, lng: -74.0030 }]
+      }
+    };
+
+    function initMap() {
+      map = new google.maps.Map(document.getElementById('map'), {
+        center: campusCenter,
+        zoom: 14,
+        styles: [
+          {
+            featureType: 'poi',
+            elementType: 'labels',
+            stylers: [{ visibility: 'off' }]
+          }
+        ]
+      });
+
+      // Draw all routes
+      Object.keys(routes).forEach(routeKey => {
+        const route = routes[routeKey];
+        
+        // Draw route path
+        const polyline = new google.maps.Polyline({
+          path: route.path,
+          geodesic: true,
+          strokeColor: route.color,
+          strokeOpacity: 0.8,
+          strokeWeight: 4,
+          map: map
+        });
+        routePolylines.push(polyline);
+
+        // Add bus markers
+        route.buses.forEach(busPos => {
+          const marker = new google.maps.Marker({
+            position: busPos,
+            map: map,
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 10,
+              fillColor: route.color,
+              fillOpacity: 1,
+              strokeColor: '#ffffff',
+              strokeWeight: 3
+            },
+            title: 'Bus Location'
+          });
+          busMarkers.push({ marker, route: routeKey });
+        });
+      });
+
+      // Simulate bus movement
+      setInterval(moveBuses, 3000);
+    }
+
+    function moveBuses() {
+      busMarkers.forEach(({ marker, route }) => {
+        const routeData = routes[route];
+        const currentPos = marker.getPosition();
+        const path = routeData.path;
+        
+        // Find nearest point on path and move to next
+        let nearestIndex = 0;
+        let minDist = Infinity;
+        
+        path.forEach((point, index) => {
+          const dist = google.maps.geometry.spherical.computeDistanceBetween(
+            currentPos,
+            new google.maps.LatLng(point.lat, point.lng)
+          );
+          if (dist < minDist) {
+            minDist = dist;
+            nearestIndex = index;
+          }
+        });
+        
+        const nextIndex = (nearestIndex + 1) % path.length;
+        const nextPoint = path[nextIndex];
+        
+        // Smooth transition
+        const currentLat = currentPos.lat();
+        const currentLng = currentPos.lng();
+        const newLat = currentLat + (nextPoint.lat - currentLat) * 0.1;
+        const newLng = currentLng + (nextPoint.lng - currentLng) * 0.1;
+        
+        marker.setPosition({ lat: newLat, lng: newLng });
+      });
+    }
+
+    // Route card click handlers
+    document.querySelectorAll('.route-card').forEach(card => {
+      card.addEventListener('click', function() {
+        document.querySelectorAll('.route-card').forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+        
+        const routeKey = this.getAttribute('data-route');
+        const route = routes[routeKey];
+        
+        if (route && route.path.length > 0) {
+          const bounds = new google.maps.LatLngBounds();
+          route.path.forEach(point => {
+            bounds.extend(new google.maps.LatLng(point.lat, point.lng));
+          });
+          map.fitBounds(bounds);
+        }
+      });
+    });
+
+    async function onConfigChange(config) {
+      const baseFont = config.font_family || defaultConfig.font_family;
+      const baseFontStack = 'Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif';
+      const baseSize = config.font_size || defaultConfig.font_size;
+      
+      document.body.style.fontFamily = `${baseFont}, ${baseFontStack}`;
+      document.body.style.background = `linear-gradient(135deg, ${config.background_color || defaultConfig.background_color} 0%, #764ba2 100%)`;
+      
+      const header = document.querySelector('.header');
+      header.style.background = config.surface_color || defaultConfig.surface_color;
+      
+      const h1 = document.getElementById('site-title');
+      h1.textContent = config.site_title || defaultConfig.site_title;
+      h1.style.color = config.text_color || defaultConfig.text_color;
+      h1.style.fontSize = `${baseSize * 2}px`;
+      
+      const tagline = document.getElementById('tagline');
+      tagline.textContent = config.tagline || defaultConfig.tagline;
+      tagline.style.color = config.secondary_action_color || defaultConfig.secondary_action_color;
+      tagline.style.fontSize = `${baseSize}px`;
+      
+      document.getElementById('route-1-name').textContent = config.route_1_name || defaultConfig.route_1_name;
+      document.getElementById('route-2-name').textContent = config.route_2_name || defaultConfig.route_2_name;
+      document.getElementById('route-3-name').textContent = config.route_3_name || defaultConfig.route_3_name;
+      
+      document.querySelectorAll('.sidebar, .map-container').forEach(el => {
+        el.style.background = config.surface_color || defaultConfig.surface_color;
+      });
+      
+      document.querySelectorAll('.route-name, .timing-value, .legend h3').forEach(el => {
+        el.style.color = config.text_color || defaultConfig.text_color;
+      });
+      
+      document.querySelectorAll('.route-card.active').forEach(el => {
+        el.style.borderColor = config.primary_action_color || defaultConfig.primary_action_color;
+      });
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities: (config) => ({
+          recolorables: [
+            {
+              get: () => config.background_color || defaultConfig.background_color,
+              set: (value) => {
+                config.background_color = value;
+                window.elementSdk.setConfig({ background_color: value });
+              }
+            },
+            {
+              get: () => config.surface_color || defaultConfig.surface_color,
+              set: (value) => {
+                config.surface_color = value;
+                window.elementSdk.setConfig({ surface_color: value });
+              }
+            },
+            {
+              get: () => config.text_color || defaultConfig.text_color,
+              set: (value) => {
+                config.text_color = value;
+                window.elementSdk.setConfig({ text_color: value });
+              }
+            },
+            {
+              get: () => config.primary_action_color || defaultConfig.primary_action_color,
+              set: (value) => {
+                config.primary_action_color = value;
+                window.elementSdk.setConfig({ primary_action_color: value });
+              }
+            },
+            {
+              get: () => config.secondary_action_color || defaultConfig.secondary_action_color,
+              set: (value) => {
+                config.secondary_action_color = value;
+                window.elementSdk.setConfig({ secondary_action_color: value });
+              }
+            }
+          ],
+          borderables: [],
+          fontEditable: {
+            get: () => config.font_family || defaultConfig.font_family,
+            set: (value) => {
+              config.font_family = value;
+              window.elementSdk.setConfig({ font_family: value });
+            }
+          },
+          fontSizeable: {
+            get: () => config.font_size || defaultConfig.font_size,
+            set: (value) => {
+              config.font_size = value;
+              window.elementSdk.setConfig({ font_size: value });
+            }
+          }
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ['site_title', config.site_title || defaultConfig.site_title],
+          ['tagline', config.tagline || defaultConfig.tagline],
+          ['route_1_name', config.route_1_name || defaultConfig.route_1_name],
+          ['route_2_name', config.route_2_name || defaultConfig.route_2_name],
+          ['route_3_name', config.route_3_name || defaultConfig.route_3_name]
+        ])
+      });
+    }
+
+    // Initialize map when page loads
+    window.addEventListener('load', initMap);
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9980f6db8642179c',t:'MTc2MjA1ODUzNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
