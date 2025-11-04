@@ -1,0 +1,877 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      height: 100%;
+      overflow: hidden;
+    }
+
+    html {
+      height: 100%;
+    }
+
+    /* Login Page Styles */
+    .login-page {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 20px;
+    }
+
+    .login-container {
+      background: white;
+      border-radius: 24px;
+      padding: 48px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 450px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .admin-icon {
+      font-size: 64px;
+      margin-bottom: 24px;
+    }
+
+    .login-title {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #2c3e50;
+    }
+
+    .login-subtitle {
+      font-size: 16px;
+      color: #7f8c8d;
+      margin-bottom: 32px;
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+      text-align: left;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #2c3e50;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 16px;
+      font-size: 16px;
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      transition: border-color 0.3s ease;
+      box-sizing: border-box;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .login-button {
+      width: 100%;
+      padding: 16px;
+      font-size: 18px;
+      font-weight: 600;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .login-button:hover {
+      background: #5a6fd8;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .login-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Dashboard Page Styles */
+    .dashboard-page {
+      display: none;
+      height: 100%;
+      flex-direction: column;
+      background: #f8f9fa;
+    }
+
+    .dashboard-header {
+      background: white;
+      padding: 20px 32px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .dashboard-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #2c3e50;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .admin-info {
+      font-size: 14px;
+      color: #7f8c8d;
+    }
+
+    .logout-button {
+      padding: 8px 16px;
+      background: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background 0.3s ease;
+    }
+
+    .logout-button:hover {
+      background: #c0392b;
+    }
+
+    .dashboard-content {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      width: 280px;
+      background: white;
+      border-right: 1px solid #e9ecef;
+      overflow-y: auto;
+    }
+
+    .sidebar-item {
+      padding: 20px 24px;
+      border-bottom: 1px solid #f8f9fa;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sidebar-item:hover {
+      background: #f8f9fa;
+    }
+
+    .sidebar-item.active {
+      background: #667eea;
+      color: white;
+    }
+
+    .sidebar-icon {
+      font-size: 20px;
+    }
+
+    .sidebar-text {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 32px;
+      overflow-y: auto;
+    }
+
+    .content-section {
+      display: none;
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .content-section.active {
+      display: block;
+    }
+
+    .section-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      color: #2c3e50;
+    }
+
+    /* Route Management Styles */
+    .route-controls {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .control-button {
+      padding: 12px 24px;
+      border: 2px solid #667eea;
+      background: white;
+      color: #667eea;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .control-button:hover,
+    .control-button.active {
+      background: #667eea;
+      color: white;
+    }
+
+    .map-container {
+      width: 100%;
+      height: 400px;
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      position: relative;
+      background: linear-gradient(45deg, #e3f2fd 25%, transparent 25%), 
+                  linear-gradient(-45deg, #e3f2fd 25%, transparent 25%), 
+                  linear-gradient(45deg, transparent 75%, #e3f2fd 75%), 
+                  linear-gradient(-45deg, transparent 75%, #e3f2fd 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+      cursor: crosshair;
+      overflow: hidden;
+    }
+
+    .route-point {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: #e74c3c;
+      border: 2px solid white;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 2px 8px rgba(231, 76, 60, 0.4);
+    }
+
+    .route-line {
+      position: absolute;
+      height: 3px;
+      background: #e74c3c;
+      transform-origin: left center;
+      box-shadow: 0 1px 4px rgba(231, 76, 60, 0.3);
+    }
+
+    .route-info {
+      margin-top: 16px;
+      padding: 16px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+
+    /* Bus Management Styles */
+    .bus-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-field.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .form-field label {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #2c3e50;
+    }
+
+    .form-field input,
+    .form-field select {
+      padding: 12px;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+    }
+
+    .form-field input:focus,
+    .form-field select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .submit-button {
+      padding: 16px 32px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .submit-button:hover {
+      background: #218838;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+
+    .submit-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .bus-list {
+      margin-top: 32px;
+    }
+
+    .bus-item {
+      padding: 20px;
+      border: 1px solid #e9ecef;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      background: #f8f9fa;
+    }
+
+    .bus-header {
+      display: flex;
+      justify-content: between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .bus-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: #2c3e50;
+    }
+
+    .bus-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      font-size: 14px;
+      color: #7f8c8d;
+    }
+
+    .loading-spinner {
+      display: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-left: 8px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .show-flex {
+      display: flex !important;
+    }
+
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 16px 24px;
+      background: #28a745;
+      color: white;
+      border-radius: 8px;
+      font-weight: 600;
+      z-index: 1000;
+      animation: slideIn 0.3s ease;
+    }
+
+    .toast.error {
+      background: #dc3545;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); }
+      to { transform: translateX(0); }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body><!-- Login Page -->
+  <div class="login-page" id="login-page">
+   <div class="login-container">
+    <div class="admin-icon">
+     🔐
+    </div>
+    <h1 class="login-title" id="login-title">Admin Panel</h1>
+    <p class="login-subtitle" id="login-subtitle">Secure administrative access</p>
+    <form id="login-form">
+     <div class="form-group"><label for="admin-username">Administrator Username</label> <input type="text" id="admin-username" placeholder="Enter admin username" required>
+     </div>
+     <div class="form-group"><label for="admin-password">Password</label> <input type="password" id="admin-password" placeholder="Enter admin password" required>
+     </div><button type="submit" class="login-button" id="login-button"> Secure Login 
+      <div class="loading-spinner" id="login-spinner"></div></button>
+    </form>
+   </div>
+  </div><!-- Dashboard Page -->
+  <div class="dashboard-page" id="dashboard-page">
+   <div class="dashboard-header">
+    <h1 class="dashboard-title" id="dashboard-title">Admin Dashboard</h1>
+    <div class="header-actions"><span class="admin-info" id="admin-info">Welcome, Administrator</span> <button class="logout-button" id="logout-button">Logout</button>
+    </div>
+   </div>
+   <div class="dashboard-content">
+    <div class="sidebar">
+     <div class="sidebar-item active" data-section="route-management"><span class="sidebar-icon">🗺️</span> <span class="sidebar-text">Route Management</span>
+     </div>
+     <div class="sidebar-item" data-section="bus-management"><span class="sidebar-icon">🚌</span> <span class="sidebar-text">Bus Management</span>
+     </div>
+    </div>
+    <div class="main-content"><!-- Route Management Section -->
+     <div class="content-section active" id="route-management">
+      <h2 class="section-title" id="route-management-title">Route Management</h2>
+      <div class="route-controls"><button class="control-button active" id="draw-mode">Draw Route</button> <button class="control-button" id="clear-route">Clear Route</button> <button class="control-button" id="save-route">Save Route</button>
+      </div>
+      <div class="map-container" id="map-container"><!-- Route points and lines will be added here dynamically -->
+      </div>
+      <div class="route-info"><strong>Instructions:</strong> Click on the map to add route points. Points will be connected automatically. Use "Clear Route" to start over and "Save Route" to store the current route. 
+       <div id="route-status">
+        Points: 0 | Total Distance: 0km
+       </div>
+      </div>
+     </div><!-- Bus Management Section -->
+     <div class="content-section" id="bus-management">
+      <h2 class="section-title" id="bus-management-title">Bus Management</h2>
+      <form class="bus-form" id="bus-form">
+       <div class="form-field"><label for="bus-name">Bus Name/Number</label> <input type="text" id="bus-name" placeholder="e.g., Bus 101" required>
+       </div>
+       <div class="form-field"><label for="license-plate">License Plate</label> <input type="text" id="license-plate" placeholder="e.g., ABC-1234" required>
+       </div>
+       <div class="form-field"><label for="driver-name">Driver Name</label> <input type="text" id="driver-name" placeholder="Enter driver name" required>
+       </div>
+       <div class="form-field"><label for="bus-capacity">Capacity</label> <input type="number" id="bus-capacity" placeholder="e.g., 50" min="1" required>
+       </div>
+       <div class="form-field"><label for="route-assignment">Assign to Route</label> <select id="route-assignment" required> <option value="">Select a route...</option> <option value="route-a">Route A - Main Campus</option> <option value="route-b">Route B - North Campus</option> <option value="route-c">Route C - South Campus</option> <option value="route-d">Route D - Express</option> </select>
+       </div>
+       <div class="form-field full-width"><button type="submit" class="submit-button" id="add-bus-button"> Add Bus to Fleet 
+         <div class="loading-spinner" id="bus-spinner"></div></button>
+       </div>
+      </form>
+      <div class="bus-list" id="bus-list"><!-- Bus items will be populated here -->
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+    const defaultConfig = {
+      login_title: "Admin Panel",
+      login_subtitle: "Secure administrative access",
+      dashboard_title: "Admin Dashboard",
+      route_management_title: "Route Management",
+      bus_management_title: "Bus Management"
+    };
+
+    let currentRoutePoints = [];
+    let isDrawingMode = true;
+    let busData = [];
+
+    // Data SDK handler
+    const dataHandler = {
+      onDataChanged(data) {
+        busData = data.filter(item => item.type === 'bus');
+        renderBusList();
+      }
+    };
+
+    async function onConfigChange(config) {
+      document.getElementById('login-title').textContent = config.login_title || defaultConfig.login_title;
+      document.getElementById('login-subtitle').textContent = config.login_subtitle || defaultConfig.login_subtitle;
+      document.getElementById('dashboard-title').textContent = config.dashboard_title || defaultConfig.dashboard_title;
+      document.getElementById('route-management-title').textContent = config.route_management_title || defaultConfig.route_management_title;
+      document.getElementById('bus-management-title').textContent = config.bus_management_title || defaultConfig.bus_management_title;
+    }
+
+    function mapToCapabilities(config) {
+      return {
+        recolorables: [
+          {
+            get: () => config.background_gradient_start || "#667eea",
+            set: (value) => {
+              config.background_gradient_start = value;
+              window.elementSdk.setConfig({ background_gradient_start: value });
+            }
+          },
+          {
+            get: () => config.background_gradient_end || "#764ba2",
+            set: (value) => {
+              config.background_gradient_end = value;
+              window.elementSdk.setConfig({ background_gradient_end: value });
+            }
+          },
+          {
+            get: () => config.primary_button_color || "#667eea",
+            set: (value) => {
+              config.primary_button_color = value;
+              window.elementSdk.setConfig({ primary_button_color: value });
+            }
+          },
+          {
+            get: () => config.text_color || "#2c3e50",
+            set: (value) => {
+              config.text_color = value;
+              window.elementSdk.setConfig({ text_color: value });
+            }
+          },
+          {
+            get: () => config.success_color || "#28a745",
+            set: (value) => {
+              config.success_color = value;
+              window.elementSdk.setConfig({ success_color: value });
+            }
+          }
+        ],
+        borderables: [],
+        fontEditable: {
+          get: () => config.font_family || "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif",
+          set: (value) => {
+            config.font_family = value;
+            window.elementSdk.setConfig({ font_family: value });
+          }
+        },
+        fontSizeable: {
+          get: () => config.font_size || 16,
+          set: (value) => {
+            config.font_size = value;
+            window.elementSdk.setConfig({ font_size: value });
+          }
+        }
+      };
+    }
+
+    function mapToEditPanelValues(config) {
+      return new Map([
+        ["login_title", config.login_title || defaultConfig.login_title],
+        ["login_subtitle", config.login_subtitle || defaultConfig.login_subtitle],
+        ["dashboard_title", config.dashboard_title || defaultConfig.dashboard_title],
+        ["route_management_title", config.route_management_title || defaultConfig.route_management_title],
+        ["bus_management_title", config.bus_management_title || defaultConfig.bus_management_title]
+      ]);
+    }
+
+    // Initialize SDKs
+    async function initializeApp() {
+      if (window.elementSdk) {
+        window.elementSdk.init({
+          defaultConfig,
+          onConfigChange,
+          mapToCapabilities,
+          mapToEditPanelValues
+        });
+      }
+
+      if (window.dataSdk) {
+        const result = await window.dataSdk.init(dataHandler);
+        if (!result.isOk) {
+          console.error("Failed to initialize data SDK");
+        }
+      }
+    }
+
+    initializeApp();
+
+    // Utility functions
+    function showToast(message, isError = false) {
+      const toast = document.createElement('div');
+      toast.className = `toast ${isError ? 'error' : ''}`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    function showSpinner(spinnerId, show = true) {
+      const spinner = document.getElementById(spinnerId);
+      if (spinner) {
+        spinner.style.display = show ? 'inline-block' : 'none';
+      }
+    }
+
+    // Login functionality
+    document.getElementById('login-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const username = document.getElementById('admin-username').value;
+      const password = document.getElementById('admin-password').value;
+      const loginButton = document.getElementById('login-button');
+      
+      if (username && password) {
+        showSpinner('login-spinner', true);
+        loginButton.disabled = true;
+        
+        // Simulate authentication delay
+        setTimeout(() => {
+          document.getElementById('admin-info').textContent = `Welcome, ${username}`;
+          document.getElementById('login-page').classList.add('hidden');
+          document.getElementById('dashboard-page').classList.add('show-flex');
+          showSpinner('login-spinner', false);
+          loginButton.disabled = false;
+          showToast('Login successful!');
+        }, 1500);
+      }
+    });
+
+    // Logout functionality
+    document.getElementById('logout-button').addEventListener('click', function() {
+      document.getElementById('dashboard-page').classList.remove('show-flex');
+      document.getElementById('login-page').classList.remove('hidden');
+      document.getElementById('login-form').reset();
+      showToast('Logged out successfully');
+    });
+
+    // Sidebar navigation
+    document.querySelectorAll('.sidebar-item').forEach(item => {
+      item.addEventListener('click', function() {
+        const section = this.dataset.section;
+        
+        // Update sidebar active state
+        document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Update content sections
+        document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+        document.getElementById(section).classList.add('active');
+      });
+    });
+
+    // Route Management functionality
+    const mapContainer = document.getElementById('map-container');
+    
+    mapContainer.addEventListener('click', function(e) {
+      if (!isDrawingMode) return;
+      
+      const rect = mapContainer.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      
+      addRoutePoint(x, y);
+    });
+
+    function addRoutePoint(x, y) {
+      const point = { x, y };
+      currentRoutePoints.push(point);
+      
+      // Create visual point
+      const pointElement = document.createElement('div');
+      pointElement.className = 'route-point';
+      pointElement.style.left = `${x}%`;
+      pointElement.style.top = `${y}%`;
+      mapContainer.appendChild(pointElement);
+      
+      // Draw line to previous point
+      if (currentRoutePoints.length > 1) {
+        drawLineBetweenPoints(currentRoutePoints[currentRoutePoints.length - 2], point);
+      }
+      
+      updateRouteStatus();
+    }
+
+    function drawLineBetweenPoints(point1, point2) {
+      const line = document.createElement('div');
+      line.className = 'route-line';
+      
+      const deltaX = point2.x - point1.x;
+      const deltaY = point2.y - point1.y;
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+      const angle = Math.atan2(deltaY, deltaX) * 180 / Math.PI;
+      
+      line.style.left = `${point1.x}%`;
+      line.style.top = `${point1.y}%`;
+      line.style.width = `${distance}%`;
+      line.style.transform = `rotate(${angle}deg)`;
+      
+      mapContainer.appendChild(line);
+    }
+
+    function updateRouteStatus() {
+      const pointCount = currentRoutePoints.length;
+      const distance = calculateTotalDistance();
+      document.getElementById('route-status').textContent = 
+        `Points: ${pointCount} | Total Distance: ${distance.toFixed(1)}km`;
+    }
+
+    function calculateTotalDistance() {
+      if (currentRoutePoints.length < 2) return 0;
+      
+      let totalDistance = 0;
+      for (let i = 1; i < currentRoutePoints.length; i++) {
+        const prev = currentRoutePoints[i - 1];
+        const curr = currentRoutePoints[i];
+        const deltaX = curr.x - prev.x;
+        const deltaY = curr.y - prev.y;
+        totalDistance += Math.sqrt(deltaX * deltaX + deltaY * deltaY) * 0.1; // Approximate km
+      }
+      return totalDistance;
+    }
+
+    // Route control buttons
+    document.getElementById('draw-mode').addEventListener('click', function() {
+      isDrawingMode = true;
+      document.querySelectorAll('.control-button').forEach(btn => btn.classList.remove('active'));
+      this.classList.add('active');
+      mapContainer.style.cursor = 'crosshair';
+    });
+
+    document.getElementById('clear-route').addEventListener('click', function() {
+      currentRoutePoints = [];
+      mapContainer.querySelectorAll('.route-point, .route-line').forEach(el => el.remove());
+      updateRouteStatus();
+      showToast('Route cleared');
+    });
+
+    document.getElementById('save-route').addEventListener('click', async function() {
+      if (currentRoutePoints.length < 2) {
+        showToast('Please add at least 2 points to save a route', true);
+        return;
+      }
+      
+      if (window.dataSdk) {
+        const routeData = {
+          id: `route-${Date.now()}`,
+          type: 'route',
+          name: `Route ${currentRoutePoints.length} Points`,
+          route_points: JSON.stringify(currentRoutePoints),
+          created_at: new Date().toISOString()
+        };
+        
+        const result = await window.dataSdk.create(routeData);
+        if (result.isOk) {
+          showToast('Route saved successfully!');
+        } else {
+          showToast('Failed to save route', true);
+        }
+      }
+    });
+
+    // Bus Management functionality
+    document.getElementById('bus-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      if (busData.length >= 999) {
+        showToast('Maximum limit of 999 buses reached. Please remove some buses first.', true);
+        return;
+      }
+      
+      const formData = new FormData(e.target);
+      const busName = document.getElementById('bus-name').value;
+      const licensePlate = document.getElementById('license-plate').value;
+      const driverName = document.getElementById('driver-name').value;
+      const capacity = parseInt(document.getElementById('bus-capacity').value);
+      const routeId = document.getElementById('route-assignment').value;
+      
+      const addButton = document.getElementById('add-bus-button');
+      showSpinner('bus-spinner', true);
+      addButton.disabled = true;
+      
+      if (window.dataSdk) {
+        const busData = {
+          id: `bus-${Date.now()}`,
+          type: 'bus',
+          name: busName,
+          license_plate: licensePlate,
+          driver_name: driverName,
+          capacity: capacity,
+          route_id: routeId,
+          created_at: new Date().toISOString()
+        };
+        
+        const result = await window.dataSdk.create(busData);
+        if (result.isOk) {
+          showToast('Bus added successfully!');
+          document.getElementById('bus-form').reset();
+        } else {
+          showToast('Failed to add bus', true);
+        }
+      }
+      
+      showSpinner('bus-spinner', false);
+      addButton.disabled = false;
+    });
+
+    function renderBusList() {
+      const busList = document.getElementById('bus-list');
+      
+      if (busData.length === 0) {
+        busList.innerHTML = '<p style="text-align: center; color: #7f8c8d; font-style: italic;">No buses added yet. Use the form above to add your first bus.</p>';
+        return;
+      }
+      
+      busList.innerHTML = busData.map(bus => `
+        <div class="bus-item">
+          <div class="bus-header">
+            <div class="bus-name">${bus.name}</div>
+          </div>
+          <div class="bus-details">
+            <div><strong>License Plate:</strong> ${bus.license_plate}</div>
+            <div><strong>Driver:</strong> ${bus.driver_name}</div>
+            <div><strong>Capacity:</strong> ${bus.capacity} passengers</div>
+            <div><strong>Route:</strong> ${getRouteName(bus.route_id)}</div>
+            <div><strong>Added:</strong> ${new Date(bus.created_at).toLocaleDateString()}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function getRouteName(routeId) {
+      const routeNames = {
+        'route-a': 'Route A - Main Campus',
+        'route-b': 'Route B - North Campus',
+        'route-c': 'Route C - South Campus',
+        'route-d': 'Route D - Express'
+      };
+      return routeNames[routeId] || 'Unknown Route';
+    }
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'998d293625f46ed1',t:'MTc2MjE4NjQyOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
