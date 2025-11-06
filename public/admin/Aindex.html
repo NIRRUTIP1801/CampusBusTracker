@@ -1,11 +1,86 @@
 <!doctype html>
 <html lang="en">
  <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Panel</title>
-  <script src="/_sdk/element_sdk.js"></script>
-  <script src="/_sdk/data_sdk.js"></script>
+ <!-- 1️⃣ Your Google Maps JavaScript code -->
+<script>
+let map;
+let routePath;
+let routeMarkers = [];
+
+function initMap() {
+  // Initialize the map centered at your desired location
+  map = new google.maps.Map(document.getElementById("map-container"), {
+    center: { lat: 19.1383, lng: 77.3210 }, // Example: Nanded, India
+    zoom: 12,
+  });
+
+  // Create a polyline for connecting route points
+  routePath = new google.maps.Polyline({
+    path: [],
+    geodesic: true,
+    strokeColor: "#e74c3c",
+    strokeOpacity: 0.8,
+    strokeWeight: 3,
+  });
+  routePath.setMap(map);
+
+  // Add click listener to add route points
+  map.addListener("click", (event) => {
+    addRoutePoint(event.latLng);
+  });
+}
+
+function addRoutePoint(latLng) {
+  const marker = new google.maps.Marker({
+    position: latLng,
+    map: map,
+    icon: {
+      path: google.maps.SymbolPath.CIRCLE,
+      scale: 6,
+      fillColor: "#e74c3c",
+      fillOpacity: 1,
+      strokeWeight: 2,
+      strokeColor: "#fff"
+    }
+  });
+
+  routeMarkers.push(marker);
+  const path = routePath.getPath();
+  path.push(latLng);
+
+  updateRouteStatus();
+}
+
+function updateRouteStatus() {
+  const totalDistance = calculateTotalDistance(routePath.getPath());
+  document.getElementById('route-status').textContent =
+    `Points: ${routeMarkers.length} | Total Distance: ${totalDistance.toFixed(2)} km`;
+}
+
+function calculateTotalDistance(path) {
+  let total = 0;
+  for (let i = 0; i < path.getLength() - 1; i++) {
+    total += google.maps.geometry.spherical.computeDistanceBetween(
+      path.getAt(i),
+      path.getAt(i + 1)
+    );
+  }
+  return total / 1000; // Convert to km
+}
+
+function clearRoute() {
+  routeMarkers.forEach(marker => marker.setMap(null));
+  routeMarkers = [];
+  routePath.setPath([]);
+  updateRouteStatus();
+}
+</script>
+
+<!-- 2️⃣ Load the Google Maps API (this tag should be LAST) -->
+<script async
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDMpxI2Cyr2eaDZKPAqQhcccbGDZes5fdY&libraries=geometry&callback=initMap">
+</script>
+
   <style>
     body {
       box-sizing: border-box;
@@ -474,7 +549,7 @@
       <h2 class="section-title" id="route-management-title">Route Management</h2>
       <div class="route-controls"><button class="control-button active" id="draw-mode">Draw Route</button> <button class="control-button" id="clear-route">Clear Route</button> <button class="control-button" id="save-route">Save Route</button>
       </div>
-      <div class="map-container" id="map-container"><!-- Route points and lines will be added here dynamically -->
+<div class="map-container" id="map-container"></div>
       </div>
       <div class="route-info"><strong>Instructions:</strong> Click on the map to add route points. Points will be connected automatically. Use "Clear Route" to start over and "Save Route" to store the current route. 
        <div id="route-status">

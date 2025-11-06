@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+</head>
+<body>
+  <h1>Welcome to Campus Bus Tracker Dashboard!</h1>
+  <p>You have successfully logged in with Google.</p>
+  <button id="logoutBtn">Logout</button>
+
+  <script type="module">
+    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDWGw0GjoKHoUr5lGqsrKtI9EP2-DePhpc",
+      authDomain: "campus-bus-tracker-630e0.firebaseapp.com",
+      projectId: "campus-bus-tracker-630e0",
+      storageBucket: "campus-bus-tracker-630e0.firebasestorage.app",
+      messagingSenderId: "209872643759",
+      appId: "1:209872643759:web:642fda806954377ee4565a",
+      measurementId: "G-MTQ44RNHEX"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      signOut(auth).then(() => {
+        alert('You are logged out!');
+        window.location.href = 'login.html';
+      });
+    });
+  </script>
+</body>
+</html>
